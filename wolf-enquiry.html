@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enquiries & Reservations — Wolf & Lamb Steakhouse</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --black: #080705; --dark: #0F0D0A; --charcoal: #1A1714; --card: #141210;
+    --gold: #C9A84C; --gold2: #E8C87A; --cream: #F5EDD8;
+    --text: #E8E0D0; --muted: #7A7060; --border: rgba(201,168,76,0.15); --border2: rgba(201,168,76,0.08);
+  }
+  body { font-family: 'Montserrat', sans-serif; background: var(--black); color: var(--text); overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: var(--black); } ::-webkit-scrollbar-thumb { background: var(--gold); }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 4rem; background: rgba(8,7,5,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border2);
+  }
+  .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream); text-decoration: none; }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a { text-decoration: none; font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; transition: color 0.3s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+  .nav-reserve { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--black); background: var(--gold); padding: 0.7rem 1.6rem; text-decoration: none; transition: all 0.3s; border: 1px solid var(--gold); }
+  .nav-reserve:hover { background: transparent; color: var(--gold); }
+
+  .page-header {
+    padding: 9rem 4rem 5rem; background: var(--dark);
+    position: relative; overflow: hidden; text-align: center;
+    border-bottom: 1px solid var(--border2);
+  }
+  .page-header::before {
+    content: 'RESERVE'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(4rem, 14vw, 13rem); font-weight: 700; color: transparent;
+    -webkit-text-stroke: 1px rgba(201,168,76,0.05); white-space: nowrap; pointer-events: none; user-select: none;
+  }
+  .header-tag { display: inline-flex; align-items: center; gap: 1rem; font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .header-tag::before, .header-tag::after { content: '—'; opacity: 0.4; }
+  .page-header h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 6vw, 5rem); font-weight: 300; color: var(--cream); letter-spacing: 0.06em; position: relative; }
+  .page-header h1 em { font-style: italic; color: var(--gold); }
+  .page-header p { color: var(--muted); font-size: 0.85rem; margin-top: 1rem; font-weight: 300; letter-spacing: 0.08em; position: relative; }
+
+  /* ENQUIRY TYPES */
+  .enquiry-types { display: flex; justify-content: center; gap: 0; background: var(--charcoal); border-bottom: 1px solid var(--border2); flex-wrap: wrap; }
+  .eq-tab { padding: 1.2rem 2.5rem; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.3s; font-family: 'Montserrat', sans-serif; white-space: nowrap; }
+  .eq-tab:hover { color: var(--gold); }
+  .eq-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* MAIN LAYOUT */
+  .enquiry-layout { display: grid; grid-template-columns: 1fr 420px; gap: 5rem; padding: 6rem 4rem; align-items: start; max-width: 1300px; margin: 0 auto; }
+
+  /* FORMS */
+  .form-panel { display: none; }
+  .form-panel.active { display: block; }
+  .form-panel h2 { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; color: var(--cream); margin-bottom: 0.5rem; }
+  .form-panel h2 em { font-style: italic; color: var(--gold); }
+  .form-panel > p { font-size: 0.82rem; color: var(--muted); line-height: 1.8; margin-bottom: 2.5rem; font-weight: 300; }
+
+  .form-grid { display: flex; flex-direction: column; gap: 1.2rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  .field label { font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 0.9rem 1rem;
+    background: var(--charcoal); border: 1px solid var(--border2);
+    color: var(--text); font-family: 'Montserrat', sans-serif; font-size: 0.85rem;
+    outline: none; transition: border-color 0.3s; appearance: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--gold); }
+  .field input::placeholder, .field textarea::placeholder { color: var(--muted); font-size: 0.8rem; }
+  .field select option { background: var(--charcoal); }
+  .field textarea { resize: vertical; min-height: 120px; font-weight: 300; }
+  .submit-btn {
+    width: 100%; padding: 1.1rem; background: var(--gold); color: var(--black);
+    border: none; font-family: 'Montserrat', sans-serif;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.3s; margin-top: 0.5rem;
+  }
+  .submit-btn:hover { background: var(--gold2); }
+  .form-note { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 0.8rem; font-weight: 300; }
+
+  /* SUCCESS */
+  .success-state { display: none; text-align: center; padding: 4rem 2rem; }
+  .success-state .icon { font-size: 3rem; margin-bottom: 1.5rem; }
+  .success-state h3 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--cream); margin-bottom: 0.8rem; }
+  .success-state h3 em { color: var(--gold); font-style: italic; }
+  .success-state p { font-size: 0.85rem; color: var(--muted); line-height: 1.8; font-weight: 300; max-width: 400px; margin: 0 auto 2rem; }
+  .success-ref { display: inline-block; padding: 0.5rem 1.5rem; border: 1px solid var(--border); color: var(--gold); font-size: 0.78rem; letter-spacing: 0.1em; margin-bottom: 2rem; }
+  .back-btn { display: inline-block; padding: 0.9rem 2.2rem; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; transition: all 0.3s; cursor: pointer; font-family: 'Montserrat', sans-serif; }
+  .back-btn:hover { background: var(--gold); color: var(--black); }
+
+  /* SIDEBAR */
+  .enquiry-sidebar { display: flex; flex-direction: column; gap: 1.5rem; position: sticky; top: 6rem; }
+
+  .info-card { background: var(--charcoal); border: 1px solid var(--border2); }
+  .info-card-head { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border2); display: flex; align-items: center; gap: 0.8rem; }
+  .info-card-head h3 { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 600; color: var(--cream); }
+  .info-card-head .dot { width: 6px; height: 6px; background: var(--gold); flex-shrink: 0; }
+  .info-card-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; }
+  .info-row { display: flex; gap: 1rem; align-items: flex-start; }
+  .info-icon { width: 36px; height: 36px; min-width: 36px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--gold); }
+  .info-label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.2rem; }
+  .info-val { font-size: 0.88rem; color: var(--text); }
+  .info-val a { color: var(--text); text-decoration: none; transition: color 0.2s; }
+  .info-val a:hover { color: var(--gold); }
+
+  .hours-card { background: var(--charcoal); border: 1px solid var(--border2); padding: 1.8rem; }
+  .hours-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 600; color: var(--cream); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.8rem; }
+  .hours-card h3::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+  .hours-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .hour-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border2); }
+  .hour-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .hour-day { color: var(--muted); font-weight: 300; }
+  .hour-time { color: var(--text); font-weight: 400; }
+  .hour-time.gold { color: var(--gold); }
+
+  .private-card { background: var(--gold); padding: 2rem; }
+  .private-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--black); margin-bottom: 0.5rem; }
+  .private-card p { font-size: 0.78rem; color: rgba(8,7,5,0.7); line-height: 1.7; margin-bottom: 1.2rem; font-weight: 300; }
+  .private-card-btn { display: block; text-align: center; padding: 0.75rem; background: var(--black); color: var(--gold); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; transition: all 0.3s; cursor: pointer; border: none; font-family: 'Montserrat', sans-serif; width: 100%; }
+  .private-card-btn:hover { background: var(--charcoal); }
+
+  footer { background: var(--black); padding: 2rem 4rem; border-top: 1px solid var(--border2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: rgba(245,237,216,0.5); }
+  .footer-logo span { color: var(--gold); }
+  .footer-links { display: flex; gap: 2rem; }
+  .footer-links a { font-size: 0.7rem; color: var(--muted); text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase; }
+  .footer-links a:hover { color: var(--gold); }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; } .nav-links { display: none; }
+    .enquiry-layout { grid-template-columns: 1fr; gap: 3rem; padding: 3rem 1.5rem; }
+    .enquiry-sidebar { position: static; }
+    .form-row { grid-template-columns: 1fr; }
+    .page-header { padding: 7rem 1.5rem 3rem; }
+    footer { flex-direction: column; text-align: center; padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Wolf <span>&</span> Lamb</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="wolf-menu.html">Menu</a></li>
+    <li><a href="index.html#catering">Catering</a></li>
+    <li><a href="wolf-enquiry.html" class="active">Enquiries</a></li>
+  </ul>
+  <a href="wolf-enquiry.html" class="nav-reserve">Reserve a Table</a>
+</nav>
+
+<div class="page-header">
+  <div class="header-tag">Reservations · Catering · Events</div>
+  <h1>Enquiries & <em>Reservations</em></h1>
+  <p>Dining reservations · Corporate catering · Private events · General enquiries</p>
+</div>
+
+<div class="enquiry-types">
+  <button class="eq-tab active" onclick="switchTab('dining', this)">Dining Reservation</button>
+  <button class="eq-tab" onclick="switchTab('catering', this)">Corporate Catering</button>
+  <button class="eq-tab" onclick="switchTab('private', this)">Private Event</button>
+  <button class="eq-tab" onclick="switchTab('general', this)">General Enquiry</button>
+</div>
+
+<div class="enquiry-layout">
+
+  <!-- FORMS -->
+  <div>
+
+    <!-- DINING -->
+    <div class="form-panel active" id="panel-dining">
+      <h2>Reserve Your <em>Table</em></h2>
+      <p>Book a table for lunch or dinner at Wolf & Lamb. We'll confirm your reservation within 2 hours during business hours. For same-day reservations please call us directly.</p>
+      <form class="form-grid" id="diningForm"
+        action="https://docs.google.com/forms/d/e/1FAIpQLSebyU-X8bfOB7XXcwPz6yo6hKUA86oaIXzJWt-vMq82wvKKrw/formResponse"
+        method="POST" target="hidden_iframe" onsubmit="showSuccess('diningSuccess', this)">
+        <div class="form-row">
+          <div class="field"><label>First Name *</label><input type="text" name="entry.173307002" placeholder="John" required /></div>
+          <div class="field"><label>Last Name *</label><input type="text" name="entry.569831780" placeholder="Smith" required /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Email *</label><input type="email" name="entry.1980477020" placeholder="john@email.com" required /></div>
+          <div class="field"><label>Phone *</label><input type="tel" name="entry.850109954" placeholder="(212) 000-0000" required /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Preferred Date *</label><input type="date" name="entry.2145957356" required /></div>
+          <div class="field"><label>Preferred Time *</label>
+            <select name="entry.1544571574" required>
+              <option disabled selected>Select time</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="12:30 PM">12:30 PM</option>
+              <option value="1:00 PM">1:00 PM</option>
+              <option value="1:30 PM">1:30 PM</option>
+              <option value="6:00 PM">6:00 PM</option>
+              <option value="6:30 PM">6:30 PM</option>
+              <option value="7:00 PM">7:00 PM</option>
+              <option value="7:30 PM">7:30 PM</option>
+              <option value="8:00 PM">8:00 PM</option>
+              <option value="8:30 PM">8:30 PM</option>
+              <option value="9:00 PM">9:00 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Party Size *</label>
+            <select name="entry.289427892" required>
+              <option disabled selected>Number of guests</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5-6">5 - 6</option>
+              <option value="7-10">7 - 10</option>
+              <option value="10+(Private Event)">10+ (Private Event)</option>
+            </select>
+          </div>
+          <div class="field"><label>Occasion</label>
+            <select name="entry.414917016">
+              <option disabled selected>Select</option>
+              <option value="Business Lunch / Dinner">Business Lunch / Dinner</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Date Night">Date Night</option>
+              <option value="Corporate Event">Corporate Event</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Special Requests (Optional)</label>
+          <textarea name="entry.1632545400" placeholder="Dietary requirements, seating preferences, special occasion details..."></textarea>
+        </div>
+        <button type="submit" class="submit-btn">Confirm Reservation →</button>
+        <p class="form-note">We'll confirm within 2 hours · For urgent bookings call (212) 317-1950</p>
+      </form>
+      <div class="success-state" id="diningSuccess">
+        <div class="icon">🍽️</div>
+        <h3>Reservation <em>Received</em></h3>
+        <p>Thank you for choosing Wolf & Lamb. We will confirm your reservation within 2 hours. We look forward to welcoming you.</p>
+        <div class="success-ref" id="diningRef">Ref: #WL-2026-001</div><br>
+        <button class="back-btn" onclick="resetForm('diningForm', 'diningSuccess')">Make Another Reservation</button>
+      </div>
+    </div>
+
+    <!-- CATERING -->
+    <div class="form-panel" id="panel-catering">
+      <h2>Corporate <em>Catering</em></h2>
+      <p>Wolf & Lamb has been the preferred kosher catering partner for Midtown's top corporations for over 25 years. From boardroom lunches to large-scale corporate events — we deliver quality, consistency and white-glove service.</p>
+      <div class="form-grid" id="cateringForm">
+        <div class="form-row">
+          <div class="field"><label>First Name</label><input type="text" placeholder="John" /></div>
+          <div class="field"><label>Last Name</label><input type="text" placeholder="Smith" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Company Name</label><input type="text" placeholder="Acme Corp" /></div>
+          <div class="field"><label>Your Role</label><input type="text" placeholder="e.g. Office Manager" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Email</label><input type="email" placeholder="john@company.com" /></div>
+          <div class="field"><label>Phone</label><input type="tel" placeholder="(212) 000-0000" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Event Date</label><input type="date" /></div>
+          <div class="field"><label>Number of Guests</label>
+            <select><option disabled selected>Select</option>
+              <option>Up to 10</option><option>10–25</option><option>25–50</option>
+              <option>50–100</option><option>100–200</option><option>200+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Event Type</label>
+            <select><option disabled selected>Select</option>
+              <option>Boardroom Lunch</option><option>Office Breakfast</option>
+              <option>Corporate Dinner</option><option>Conference Catering</option>
+              <option>Holiday Party</option><option>Product Launch</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Budget Range</label>
+            <select><option disabled selected>Select</option>
+              <option>Under $500</option><option>$500–$1,500</option>
+              <option>$1,500–$5,000</option><option>$5,000–$10,000</option><option>$10,000+</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Delivery Address</label><input type="text" placeholder="Full address in Midtown Manhattan" /></div>
+        <div class="field"><label>Additional Details</label><textarea placeholder="Tell us about your event, cuisine preferences, any dietary requirements or special requests..."></textarea></div>
+        <button class="submit-btn" onclick="submitForm('cateringForm', 'cateringSuccess')">Submit Catering Enquiry →</button>
+        <p class="form-note">A catering specialist will contact you within 4 hours</p>
+      </div>
+      <div class="success-state" id="cateringSuccess">
+        <div class="icon">🥩</div>
+        <h3>Enquiry <em>Received</em></h3>
+        <p>Thank you for your catering enquiry. One of our corporate catering specialists will be in touch within 4 hours to discuss your event in detail.</p>
+        <div class="success-ref" id="cateringRef">Ref: #WLC-2026-001</div><br>
+        <button class="back-btn" onclick="resetForm('cateringForm', 'cateringSuccess')">Submit Another Enquiry</button>
+      </div>
+    </div>
+
+    <!-- PRIVATE EVENT -->
+    <div class="form-panel" id="panel-private">
+      <h2>Private <em>Events</em></h2>
+      <p>Our private upstairs dining room is the perfect setting for intimate celebrations, business dinners, and exclusive gatherings. Fully customisable with dedicated wait staff and a tailored menu.</p>
+      <div class="form-grid" id="privateForm">
+        <div class="form-row">
+          <div class="field"><label>First Name</label><input type="text" placeholder="John" /></div>
+          <div class="field"><label>Last Name</label><input type="text" placeholder="Smith" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Email</label><input type="email" placeholder="john@email.com" /></div>
+          <div class="field"><label>Phone</label><input type="tel" placeholder="(212) 000-0000" /></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Event Date</label><input type="date" /></div>
+          <div class="field"><label>Guest Count</label>
+            <select><option disabled selected>Select</option>
+              <option>Up to 10</option><option>10–20</option><option>20–40</option><option>40+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Event Type</label>
+            <select><option disabled selected>Select</option>
+              <option>Birthday Celebration</option><option>Anniversary Dinner</option>
+              <option>Bar / Bat Mitzvah</option><option>Business Dinner</option>
+              <option>Engagement</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Start Time</label>
+            <select><option disabled selected>Select</option>
+              <option>12:00 PM</option><option>1:00 PM</option><option>6:00 PM</option>
+              <option>7:00 PM</option><option>8:00 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Tell Us About Your Event</label><textarea placeholder="Share your vision, any special requirements, dietary needs, or questions you have for our events team..."></textarea></div>
+        <button class="submit-btn" onclick="submitForm('privateForm', 'privateSuccess')">Submit Event Enquiry →</button>
+        <p class="form-note">Our events team will contact you within 24 hours</p>
+      </div>
+      <div class="success-state" id="privateSuccess">
+        <div class="icon">✦</div>
+        <h3>We've Got Your <em>Enquiry</em></h3>
+        <p>Thank you! Our private events team will contact you within 24 hours to begin planning your perfect evening at Wolf & Lamb.</p>
+        <div class="success-ref" id="privateRef">Ref: #WLP-2026-001</div><br>
+        <button class="back-btn" onclick="resetForm('privateForm', 'privateSuccess')">Submit Another Enquiry</button>
+      </div>
+    </div>
+
+    <!-- GENERAL -->
+    <div class="form-panel" id="panel-general">
+      <h2>Get In <em>Touch</em></h2>
+      <p>Have a question about our menu, kosher certification, accessibility, or anything else? Send us a message and we'll get back to you shortly.</p>
+      <div class="form-grid" id="generalForm">
+        <div class="form-row">
+          <div class="field"><label>Name</label><input type="text" placeholder="Your name" /></div>
+          <div class="field"><label>Email</label><input type="email" placeholder="your@email.com" /></div>
+        </div>
+        <div class="field"><label>Subject</label><input type="text" placeholder="What's your question about?" /></div>
+        <div class="field"><label>Message</label><textarea placeholder="Your message..."></textarea></div>
+        <button class="submit-btn" onclick="submitForm('generalForm', 'generalSuccess')">Send Message →</button>
+      </div>
+      <div class="success-state" id="generalSuccess">
+        <div class="icon">💬</div>
+        <h3>Message <em>Sent</em></h3>
+        <p>Thank you for reaching out. We'll reply to your message within one business day.</p><br>
+        <button class="back-btn" onclick="resetForm('generalForm', 'generalSuccess')">Send Another Message</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="enquiry-sidebar">
+    <div class="info-card">
+      <div class="info-card-head"><div class="dot"></div><h3>Contact Us Directly</h3></div>
+      <div class="info-card-body">
+        <div class="info-row">
+          <div class="info-icon">📞</div>
+          <div><div class="info-label">Phone</div><div class="info-val"><a href="tel:2123171950">(212) 317-1950</a></div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">📍</div>
+          <div><div class="info-label">Address</div><div class="info-val">16 East 48th Street<br>New York, NY 10017</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🚇</div>
+          <div><div class="info-label">Subway</div><div class="info-val">E, M · 5th Ave/53rd St<br>B, D, F · 47–50th/Rock Center</div></div>
+        </div>
+        <div class="info-row">
+          <div class="info-icon">🅿️</div>
+          <div><div class="info-label">Parking</div><div class="info-val">Multiple garages within 1 block on 48th Street</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hours-card">
+      <h3>Hours of Operation</h3>
+      <div class="hours-list">
+        <div class="hour-row"><span class="hour-day">Monday – Thursday</span><span class="hour-time">12pm – 10pm</span></div>
+        <div class="hour-row"><span class="hour-day">Friday</span><span class="hour-time gold">12pm – 10:30pm</span></div>
+        <div class="hour-row"><span class="hour-day">Saturday</span><span class="hour-time">7:45pm – 10:45pm</span></div>
+        <div class="hour-row"><span class="hour-day">Sunday</span><span class="hour-time">4pm – 10pm</span></div>
+        <div class="hour-row"><span class="hour-day">Catering</span><span class="hour-time gold">By arrangement</span></div>
+      </div>
+    </div>
+
+    <div class="private-card">
+      <h3>Private Dining Room</h3>
+      <p>Exclusively available for groups of 10 to 40 guests. Dedicated staff, custom menus, and full event support.</p>
+      <button class="private-card-btn" onclick="switchTab('private', document.querySelectorAll('.eq-tab')[2])">Enquire About Private Dining →</button>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-logo">Wolf <span>&</span> Lamb · 16 East 48th Street, Manhattan</div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="wolf-menu.html">Menu</a>
+    <a href="wolf-enquiry.html">Enquiries</a>
+  </div>
+</footer>
+
+<!-- Hidden iframe to catch Google Form response silently -->
+<iframe name="hidden_iframe" style="display:none;"></iframe>
+
+<script>
+  function showSuccess(successId, form) {
+    setTimeout(function() {
+      form.style.display = 'none';
+      document.getElementById(successId).style.display = 'block';
+    }, 500);
+  }
+  function switchTab(panel, btn) {
+    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.eq-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + panel).classList.add('active');
+    btn.classList.add('active');
+  }
+  function submitForm(formId, successId) {
+    const ref = '#WL-2026-' + Math.floor(Math.random() * 900 + 100);
+    document.getElementById(formId).style.display = 'none';
+    const s = document.getElementById(successId);
+    s.style.display = 'block';
+    const refEl = document.getElementById(formId.replace('Form','Ref'));
+    if (refEl) refEl.textContent = 'Ref: ' + ref;
+  }
+  function resetForm(formId, successId) {
+    document.getElementById(formId).style.display = 'flex';
+    document.getElementById(successId).style.display = 'none';
+  }
+</script>
+</body>
+</html>
